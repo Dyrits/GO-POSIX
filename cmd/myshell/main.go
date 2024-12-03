@@ -13,9 +13,19 @@ var _ = fmt.Fprint
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 
+	commands := map[string]func(){
+		"exit 0": func() {
+			os.Exit(0)
+		},
+	}
+
 	for {
 		input := read(reader)
-		fmt.Fprint(os.Stdout, fmt.Sprintf("%v: command not found\n", input))
+		if function, exists := commands[input]; exists {
+			function()
+		} else {
+			fmt.Fprint(os.Stdout, fmt.Sprintf("%v: command not found\n", input))
+		}
 	}
 }
 
