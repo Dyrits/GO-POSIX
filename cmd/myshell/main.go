@@ -16,34 +16,43 @@ type CommandFunction func(argument string)
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 
-	commands := map[string]CommandFunction{
-		"exit": func(argument string) {
-			if integer, err := strconv.Atoi(argument); err == nil {
-				os.Exit(integer)
-			} else {
-				fmt.Fprint(os.Stdout, "Invalid argument for exit\n")
-			}
-		},
-		"echo": func(argument string) {
-			fmt.Fprint(os.Stdout, argument+"\n")
-		},
+	commands := make(map[string]CommandFunction)
+
+	commands["exit"] = func(argument string) {
+		if integer, err := strconv.Atoi(argument); err == nil {
+			os.Exit(integer)
+		} else {
+			_, _ = fmt.Fprint(os.Stdout, "Invalid argument for exit\n")
+		}
+	}
+
+	commands["echo"] = func(argument string) {
+		_, _ = fmt.Fprint(os.Stdout, argument+"\n")
+	}
+
+	commands["type"] = func(argument string) {
+		if _, exists := commands[argument]; exists {
+			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v is a shell builtin\n", argument))
+		} else {
+			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v: not found\n", argument))
+		}
 	}
 
 	for {
 		input := read(reader)
-		// The shell only works for commands with 4 characters.
-		command := input[0:4]
-		argument := input[5:]
+		fields := strings.Fields(input)
+		command := fields[0]
+		argument := strings.Join(fields[1:], " ")
 		if function, exists := commands[command]; exists {
 			function(argument)
 		} else {
-			fmt.Fprint(os.Stdout, fmt.Sprintf("%v: command not found\n", input))
+			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v: command not found\n", input))
 		}
 	}
 }
 
 func read(reader *bufio.Reader) string {
-	fmt.Fprint(os.Stdout, "$ ")
+	_, _ = fmt.Fprint(os.Stdout, "$ ")
 	input, _ := reader.ReadString('\n')
 	return strings.TrimSpace(input)
 }
