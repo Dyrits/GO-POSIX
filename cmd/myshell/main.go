@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 )
@@ -34,7 +35,12 @@ func main() {
 		if _, exists := commands[argument]; exists {
 			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v is a shell builtin\n", argument))
 		} else {
-			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v: not found\n", argument))
+			path, err := exec.LookPath(argument)
+			if err == nil {
+				_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v is %v\n", argument, path))
+			} else {
+				_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v: not found\n", argument))
+			}
 		}
 	}
 
