@@ -19,27 +19,27 @@ func main() {
 
 	commands := make(map[string]CommandFunction)
 
-	commands["exit"] = func(argument string) {
-		if integer, err := strconv.Atoi(argument); err == nil {
+	commands["exit"] = func(arguments string) {
+		if integer, err := strconv.Atoi(arguments); err == nil {
 			os.Exit(integer)
 		} else {
 			_, _ = fmt.Fprint(os.Stdout, "Invalid argument for exit\n")
 		}
 	}
 
-	commands["echo"] = func(argument string) {
-		_, _ = fmt.Fprint(os.Stdout, argument+"\n")
+	commands["echo"] = func(arguments string) {
+		_, _ = fmt.Fprint(os.Stdout, arguments+"\n")
 	}
 
-	commands["type"] = func(argument string) {
-		if _, exists := commands[argument]; exists {
-			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v is a shell builtin\n", argument))
+	commands["type"] = func(arguments string) {
+		if _, exists := commands[arguments]; exists {
+			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v is a shell builtin\n", arguments))
 		} else {
-			path, err := exec.LookPath(argument)
+			path, err := exec.LookPath(arguments)
 			if err == nil {
-				_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v is %v\n", argument, path))
+				_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v is %v\n", arguments, path))
 			} else {
-				_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v: not found\n", argument))
+				_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v: not found\n", arguments))
 			}
 		}
 	}
@@ -48,11 +48,19 @@ func main() {
 		input := read(reader)
 		fields := strings.Fields(input)
 		command := fields[0]
-		argument := strings.Join(fields[1:], " ")
+		arguments := fields[1:]
 		if function, exists := commands[command]; exists {
-			function(argument)
+			// Run a registered command.
+			function(strings.Join(arguments, " "))
 		} else {
-			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v: command not found\n", input))
+			// Run a system command (usually in the PATH).
+			run := exec.Command(command, arguments...)
+			run.Stdout = os.Stdout
+			run.Stderr = os.Stderr
+			err := run.Run()
+			if err != nil {
+				_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v: command not found\n", command))
+			}
 		}
 	}
 }
