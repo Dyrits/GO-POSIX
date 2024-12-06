@@ -38,6 +38,13 @@ func main() {
 		}
 	}
 
+	commands["cd"] = func(arguments string) {
+		err := os.Chdir(arguments)
+		if err != nil {
+			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v: No such file or directory\n", arguments))
+		}
+	}
+
 	commands["type"] = func(arguments string) {
 		if _, exists := commands[arguments]; exists {
 			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v is a shell builtin\n", arguments))
