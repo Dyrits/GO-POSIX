@@ -39,6 +39,10 @@ func main() {
 	}
 
 	commands["cd"] = func(arguments string) {
+		first := arguments[0]
+		if first == '~' {
+			arguments = os.Getenv("HOME") + arguments[1:]
+		}
 		err := os.Chdir(arguments)
 		if err != nil {
 			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v: No such file or directory\n", arguments))
