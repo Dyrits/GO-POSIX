@@ -31,6 +31,13 @@ func main() {
 		_, _ = fmt.Fprint(os.Stdout, arguments+"\n")
 	}
 
+	commands["pwd"] = func(arguments string) {
+		path, err := os.Getwd()
+		if err == nil {
+			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v\n", path))
+		}
+	}
+
 	commands["type"] = func(arguments string) {
 		if _, exists := commands[arguments]; exists {
 			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v is a shell builtin\n", arguments))
