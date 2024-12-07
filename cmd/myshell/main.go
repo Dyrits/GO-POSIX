@@ -64,12 +64,16 @@ func main() {
 
 	for {
 		input := read(reader)
-		fields := strings.Fields(input)
+		fields := split(input)
+		if len(fields) == 0 {
+			continue
+		}
 		command := fields[0]
 		arguments := fields[1:]
 		if function, exists := commands[command]; exists {
+			arguments := strings.Join(arguments, " ")
 			// Run a registered command.
-			function(strings.Join(arguments, " "))
+			function(arguments)
 		} else {
 			// Run a system command (usually in the PATH).
 			run := exec.Command(command, arguments...)
@@ -81,6 +85,31 @@ func main() {
 			}
 		}
 	}
+}
+
+func split(input string) []string {
+	var result []string
+	var current []rune
+	quote := false
+
+	for _, char := range input {
+		if char == '\'' {
+			quote = !quote
+		} else if char == ' ' && !quote {
+			if len(current) > 0 {
+				result = append(result, string(current))
+				current = nil
+			}
+		} else {
+			current = append(current, char)
+		}
+	}
+
+	if len(current) > 0 {
+		result = append(result, string(current))
+	}
+
+	return result
 }
 
 func read(reader *bufio.Reader) string {
