@@ -90,18 +90,27 @@ func main() {
 func split(input string) []string {
 	var result []string
 	var current []rune
-	quote := false
+	single := false
+	double := false
+	escape := false
 
-	for _, char := range input {
-		if char == '\'' {
-			quote = !quote
-		} else if char == ' ' && !quote {
+	for _, character := range input {
+		if escape {
+			current = append(current, character)
+			escape = false
+		} else if character == '\\' {
+			escape = true
+		} else if character == '\'' && !double {
+			single = !single
+		} else if character == '"' && !single {
+			double = !double
+		} else if character == ' ' && !single && !double {
 			if len(current) > 0 {
 				result = append(result, string(current))
 				current = nil
 			}
 		} else {
-			current = append(current, char)
+			current = append(current, character)
 		}
 	}
 
