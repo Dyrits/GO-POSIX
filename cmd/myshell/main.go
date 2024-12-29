@@ -93,10 +93,25 @@ func split(input string) []string {
 	single := false
 	double := false
 	escape := false
+	path := false
+
+	if strings.HasPrefix(input, "cat ") || strings.HasPrefix(input, "ls ") {
+		path = true
+	}
+
+	escapable := func(character rune) bool {
+		return character == '"' || character == '\'' || character == '\\' || character == ' ' || character == 'n'
+	}
 
 	for _, character := range input {
 		if escape {
-			current = append(current, character)
+			// If the character is an escapable character, and not in a single-quoted string, or used as a path, append it to the current argument.
+			if escapable(character) && !single && !path {
+				current = append(current, character)
+			} else {
+				// If not, append the escape character and the current character.
+				current = append(current, '\\', character)
+			}
 			escape = false
 		} else if character == '\\' {
 			escape = true
