@@ -76,6 +76,16 @@ func main() {
 			function(arguments)
 		} else {
 			// Run a system command (usually in the PATH).
+
+			// Remove outer quotes if they exist.
+			if (strings.HasPrefix(command, "'") && strings.HasSuffix(command, "'")) ||
+				(strings.HasPrefix(command, "\"") && strings.HasSuffix(command, "\"")) {
+				command = command[1 : len(command)-1]
+			}
+
+			command = strings.ReplaceAll(command, "'", `\'`)
+
+			// Run the command
 			run := exec.Command(command, arguments...)
 			run.Stdout = os.Stdout
 			run.Stderr = os.Stderr
