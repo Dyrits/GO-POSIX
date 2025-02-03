@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strconv"
@@ -12,52 +13,52 @@ import (
 // Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
 var _ = fmt.Fprint
 
-type CommandFunction func(argument string)
+type CommandFunction func(argument string, writer io.Writer)
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	commands := make(map[string]CommandFunction)
 
-	commands["exit"] = func(arguments string) {
+	commands["exit"] = func(arguments string, writer io.Writer) {
 		if integer, err := strconv.Atoi(arguments); err == nil {
 			os.Exit(integer)
 		} else {
-			_, _ = fmt.Fprint(os.Stdout, "Invalid argument for exit\n")
+			_, _ = fmt.Fprint(writer, "Invalid argument for exit\n")
 		}
 	}
 
-	commands["echo"] = func(arguments string) {
-		_, _ = fmt.Fprint(os.Stdout, arguments+"\n")
+	commands["echo"] = func(arguments string, writer io.Writer) {
+		_, _ = fmt.Fprint(writer, arguments+"\n")
 	}
 
-	commands["pwd"] = func(arguments string) {
+	commands["pwd"] = func(arguments string, writer io.Writer) {
 		path, err := os.Getwd()
 		if err == nil {
-			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v\n", path))
+			_, _ = fmt.Fprint(writer, fmt.Sprintf("%v\n", path))
 		}
 	}
 
-	commands["cd"] = func(arguments string) {
+	commands["cd"] = func(arguments string, writer io.Writer) {
 		first := arguments[0]
 		if first == '~' {
 			arguments = os.Getenv("HOME") + arguments[1:]
 		}
 		err := os.Chdir(arguments)
 		if err != nil {
-			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v: No such file or directory\n", arguments))
+			_, _ = fmt.Fprint(writer, fmt.Sprintf("%v: No such file or directory\n", arguments))
 		}
 	}
 
-	commands["type"] = func(arguments string) {
+	commands["type"] = func(arguments string, writer io.Writer) {
 		if _, exists := commands[arguments]; exists {
-			_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v is a shell builtin\n", arguments))
+			_, _ = fmt.Fprint(writer, fmt.Sprintf("%v is a shell builtin\n", arguments))
 		} else {
 			path, err := exec.LookPath(arguments)
 			if err == nil {
-				_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v is %v\n", arguments, path))
+				_, _ = fmt.Fprint(writer, fmt.Sprintf("%v is %v\n", arguments, path))
 			} else {
-				_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v: not found\n", arguments))
+				_, _ = fmt.Fprint(writer, fmt.Sprintf("%v: not found\n", arguments))
 			}
 		}
 	}
@@ -70,10 +71,38 @@ func main() {
 		}
 		command := fields[0]
 		arguments := fields[1:]
+
+		var output string
+		for index, argument := range arguments {
+			if argument == ">" || argument == "1>" {
+				if index+1 < len(arguments) {
+					output = arguments[index+1]
+					arguments = arguments[:index]
+					break
+				}
+			}
+		}
+
+		var writer io.Writer = os.Stdout
+		if output != "" {
+			file, err := os.Create(output)
+			if err != nil {
+				_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("Error creating file: %v\n", err))
+				continue
+			}
+			defer func(file *os.File) {
+				err := file.Close()
+				if err != nil {
+					_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("Error closing file: %v\n", err))
+				}
+			}(file)
+			writer = file
+		}
+
 		if function, exists := commands[command]; exists {
 			arguments := strings.Join(arguments, " ")
 			// Run a registered command.
-			function(arguments)
+			function(arguments, writer)
 		} else {
 			// Run a system command (usually in the PATH).
 
@@ -87,12 +116,9 @@ func main() {
 
 			// Run the command
 			run := exec.Command(command, arguments...)
-			run.Stdout = os.Stdout
+			run.Stdout = writer
 			run.Stderr = os.Stderr
-			err := run.Run()
-			if err != nil {
-				_, _ = fmt.Fprint(os.Stdout, fmt.Sprintf("%v: command not found\n", command))
-			}
+			_ = run.Run()
 		}
 	}
 }
