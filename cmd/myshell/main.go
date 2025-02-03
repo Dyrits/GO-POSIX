@@ -115,10 +115,16 @@ func main() {
 			command = strings.ReplaceAll(command, "'", `\'`)
 
 			// Run the command
+			command, err := exec.LookPath(command)
+			if err != nil {
+				// ▼▼▼ Add this error message ▼▼▼
+				_, _ = fmt.Fprintf(os.Stdout, "%s: command not found\n", command)
+				continue
+			}
 			run := exec.Command(command, arguments...)
 			run.Stdout = writer
 			run.Stderr = os.Stderr
-			_ = run.Run()
+			run.Run()
 		}
 	}
 }
