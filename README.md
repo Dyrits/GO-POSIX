@@ -1,35 +1,37 @@
-[![progress-banner](https://backend.codecrafters.io/progress/shell/c234a5dc-e719-42e1-8ef6-3a578e42c260)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+# GO-POSIX
 
-This is a starting point for Go solutions to the
-["Build Your Own Shell" Challenge](https://app.codecrafters.io/courses/shell/overview).
+A POSIX-compliant shell written in Go, built for the CodeCrafters "Build Your Own Shell" challenge.
 
-In this challenge, you'll build your own POSIX compliant shell that's capable of
-interpreting shell commands, running external programs and builtin commands like
-cd, pwd, echo and more. Along the way, you'll learn about shell command parsing,
-REPLs, builtin commands, and more.
+## About The Project
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+A Go implementation of a shell capable of interpreting shell commands and running external programs and builtin commands like `cd`, `pwd` and `echo`, following the CodeCrafters challenge stages. The entry point is `cmd/myshell/main.go`.
 
-# Passing the first stage
+### Status
 
-The entry point for your `shell` implementation is in `cmd/myshell/main.go`.
-Study and uncomment the relevant code, and push your changes to pass the first
-stage:
+Work in progress (exploratory project).
+
+### Built With
+
+- Go (1.19+)
+
+## Getting Started
+
+### Prerequisites
+
+- Go 1.19 or later
+
+### Running
 
 ```sh
-git commit -am "pass 1st stage" # any msg
-git push origin master
+./your_program.sh    # runs the shell implemented in cmd/myshell/main.go
 ```
 
-Time to move on to the next stage!
+Solutions are submitted to CodeCrafters by pushing to `master`; test output is streamed to the terminal.
 
-# Stage 2 & beyond
+## License
 
-Note: This section is for stages 2 and beyond.
+No license file is present in this repository.
 
-1. Ensure you have `go (1.19)` installed locally
-1. Run `./your_program.sh` to run your program, which is implemented in
-   `cmd/myshell/main.go`.
-1. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
+## Contact
+
+Dyrits - https://github.com/Dyrits
